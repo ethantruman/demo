@@ -2,135 +2,213 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Traffic Light Simulator (Decorated Frames)</title>
+  <title>Traffic Light Simulator (Premium UI)</title>
   <style>
     /* ======================
-       CSS cơ bản
+       CSS CHUNG
     ======================= */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;500&display=swap');
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #e0e0e0, #f9f9f9);
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: flex-start;
       padding: 20px;
     }
     h1 {
-      margin-bottom: 10px;
+      margin-bottom: 4px;
+      font-size: 32px;
+      color: #333;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
     }
     .subtitle {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
       color: #555;
+      font-size: 16px;
     }
 
-    /* Nút điều khiển */
+    /* ======================
+       NÚT ĐIỀU KHIỂN (BUTTONS)
+    ======================= */
     .controls {
-      margin-bottom: 20px;
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     .controls button {
-      padding: 8px 16px;
+      padding: 10px 24px;
       font-size: 16px;
-      margin-right: 10px;
+      font-weight: 500;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
-      background-color: #007bff;
+      background-color: #2196F3;
       color: white;
-      transition: background 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: background 0.2s, transform 0.08s;
     }
     .controls button:hover {
-      background-color: #0056b3;
+      background-color: #1976D2;
+    }
+    .controls button:active {
+      transform: scale(0.96);
     }
     .controls button.active {
-      background-color: #0056b3;
+      background-color: #1976D2;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
     .controls button.manual-btn {
-      background-color: #28a745;
+      background-color: #4CAF50;
+    }
+    .controls button.manual-btn:hover {
+      background-color: #388E3C;
     }
     .controls button.manual-btn:disabled {
       background-color: #aaa;
       cursor: not-allowed;
+      box-shadow: none;
     }
 
-    /* Bố cục đèn với khung */
+    /* ======================
+       BỐ CỤC ĐÈN GIAO THÔNG
+    ======================= */
     .container {
       display: flex;
-      gap: 60px;
-      margin-bottom: 20px;
+      gap: 80px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     .traffic-group {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 15px;
-      border: 2px solid #ccc;
-      border-radius: 8px;
-      background-color: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: relative;
     }
     .traffic-label {
-      margin-bottom: 8px;
-      font-weight: bold;
+      margin-bottom: 12px;
+      font-weight: 500;
+      color: #333;
+      font-size: 18px;
+    }
+    /* “Housing” - thân đèn */
+    .housing {
+      background-color: #2c2c2c;
+      padding: 16px;
+      border-radius: 12px;
+      border: 4px solid #1a1a1a;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100px;
+      position: relative;
+    }
+    /* Cột đèn (pole) */
+    .housing::after {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 60px;
+      background-color: #444;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
     .lights {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 14px;
     }
     .light {
-      width: 50px;
-      height: 50px;
-      background-color: #333; /* tắt = xám đậm */
+      width: 70px;
+      height: 70px;
+      background-color: #333; /* Tắt = xám đậm */
       border-radius: 50%;
-      border: 2px solid #555;
+      border: 4px solid #111;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      transition: background 0.2s, box-shadow 0.3s;
     }
-    .light.red.active    { background-color: red;    }
-    .light.yellow.active { background-color: yellow; }
-    .light.green.active  { background-color: green;  }
+    .light.red.active {
+      background-color: #e53935;
+      box-shadow: 0 0 20px rgba(229,57,53,0.8), inset 0 0 6px rgba(0,0,0,0.5);
+    }
+    .light.yellow.active {
+      background-color: #fdd835;
+      box-shadow: 0 0 20px rgba(253,216,53,0.8), inset 0 0 6px rgba(0,0,0,0.5);
+    }
+    .light.green.active {
+      background-color: #43a047;
+      box-shadow: 0 0 20px rgba(67,160,71,0.8), inset 0 0 6px rgba(0,0,0,0.5);
+    }
 
-    /* Bố cục 2 bộ đếm với khung */
+    /* ======================
+       BỘ ĐẾM (COUNTERS) – DIGITAL STYLE
+    ======================= */
     .counters {
       display: flex;
-      gap: 40px;
-      margin-top: 10px;
+      gap: 60px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 24px;
     }
     .counter-box {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 15px;
-      border: 2px solid #ccc;
-      border-radius: 8px;
-      background-color: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      min-width: 100px;
+      background-color: #212121;
+      padding: 16px 24px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      min-width: 140px;
     }
     .counter-label {
-      font-weight: bold;
-      margin-bottom: 6px;
+      font-family: 'Roboto', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #eee;
     }
     .counter {
-      font-size: 48px;
-      font-weight: bold;
-      height: 60px;    /* giữ chỗ khi blank */
-      line-height: 60px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 64px;
+      color: #00e676;
+      background-color: #000;
+      padding: 4px 12px;
+      border-radius: 6px;
+      box-shadow: inset 0 0 8px rgba(0,230,118,0.7), 0 2px 6px rgba(0,0,0,0.5);
+      min-width: 70px;
       text-align: center;
+      transition: color 0.2s, box-shadow 0.2s;
+    }
+    .counter.blank {
       color: #333;
-      min-width: 60px;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
     }
   </style>
 </head>
 <body>
 
   <h1>Traffic Light Simulator</h1>
-  <p class="subtitle">Manual Mode: Nhấn BTN1/BTN2 luôn nhảy ngay</p>
+  <p class="subtitle">Manual Mode: Nhấn BTN1/BTN2 để chuyển chế độ ngay</p>
 
-  <!-- 1. Nút chọn chế độ và nút bấm Manual -->
+  <!-- 1. Nút chọn chế độ và Manual buttons -->
   <div class="controls">
     <button id="btn-auto">Auto Mode</button>
     <button id="btn-manual">Manual Mode</button>
@@ -138,37 +216,41 @@
     <button id="btn2" class="manual-btn" disabled>BTN2 (EW)</button>
   </div>
 
-  <!-- 2. Hai nhóm đèn EW & NS với khung -->
+  <!-- 2. Hai “nhà đèn” EW & NS -->
   <div class="container">
     <!-- Nhánh EW -->
     <div class="traffic-group">
-      <div class="traffic-label">EW</div>
-      <div class="lights">
-        <div id="ew-red" class="light red"></div>
-        <div id="ew-yellow" class="light yellow"></div>
-        <div id="ew-green" class="light green"></div>
+      <div class="traffic-label">EW (Đông-Tây)</div>
+      <div class="housing">
+        <div class="lights">
+          <div id="ew-red" class="light red"></div>
+          <div id="ew-yellow" class="light yellow"></div>
+          <div id="ew-green" class="light green"></div>
+        </div>
       </div>
     </div>
     <!-- Nhánh NS -->
     <div class="traffic-group">
-      <div class="traffic-label">NS</div>
-      <div class="lights">
-        <div id="ns-red" class="light red"></div>
-        <div id="ns-yellow" class="light yellow"></div>
-        <div id="ns-green" class="light green"></div>
+      <div class="traffic-label">NS (Nam-Bắc)</div>
+      <div class="housing">
+        <div class="lights">
+          <div id="ns-red" class="light red"></div>
+          <div id="ns-yellow" class="light yellow"></div>
+          <div id="ns-green" class="light green"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 3. Hai bộ đếm riêng với khung -->
+  <!-- 3. Hai bộ đếm riêng với khung Digital -->
   <div class="counters">
     <div class="counter-box">
       <div class="counter-label">EW Count</div>
-      <div id="ew-counter" class="counter"></div>
+      <div id="ew-counter" class="counter blank"></div>
     </div>
     <div class="counter-box">
       <div class="counter-label">NS Count</div>
-      <div id="ns-counter" class="counter"></div>
+      <div id="ns-counter" class="counter blank"></div>
     </div>
   </div>
 
@@ -177,16 +259,16 @@
     ///////////////////////////////////////////////////
     // 1. Khai báo biến toàn cục và helper functions
     ///////////////////////////////////////////////////
-    const btnAuto    = document.getElementById('btn-auto');
-    const btnManual  = document.getElementById('btn-manual');
-    const btn1       = document.getElementById('btn1');   // BTN1 điều khiển NS
-    const btn2       = document.getElementById('btn2');   // BTN2 điều khiển EW
-    const ewRed      = document.getElementById('ew-red');
-    const ewYellow   = document.getElementById('ew-yellow');
-    const ewGreen    = document.getElementById('ew-green');
-    const nsRed      = document.getElementById('ns-red');
-    const nsYellow   = document.getElementById('ns-yellow');
-    const nsGreen    = document.getElementById('ns-green');
+    const btnAuto     = document.getElementById('btn-auto');
+    const btnManual   = document.getElementById('btn-manual');
+    const btn1        = document.getElementById('btn1');    // BTN1 = NS
+    const btn2        = document.getElementById('btn2');    // BTN2 = EW
+    const ewRed       = document.getElementById('ew-red');
+    const ewYellow    = document.getElementById('ew-yellow');
+    const ewGreen     = document.getElementById('ew-green');
+    const nsRed       = document.getElementById('ns-red');
+    const nsYellow    = document.getElementById('ns-yellow');
+    const nsGreen     = document.getElementById('ns-green');
     const ewCounterDiv = document.getElementById('ew-counter');
     const nsCounterDiv = document.getElementById('ns-counter');
 
@@ -194,9 +276,9 @@
     let mode = 'auto'; // 'auto' hoặc 'manual'
 
     // References cho các timeout / interval để dễ clear
-    let autoTimer       = null;
-    let manualBlinkInt  = null;
-    let manualPhaseTimer= null;
+    let autoTimer        = null;
+    let manualBlinkInt   = null;
+    let manualPhaseTimer = null;
 
     const SEC = 1000; // 1 giây (ms)
 
@@ -212,24 +294,36 @@
       nsGreen.classList.toggle('active',  g);
     }
 
-    // Hiển thị đếm
+    // Hiển thị đếm (digital style)
     function showEWCount(val) {
-      ewCounterDiv.textContent = (val === null ? '' : val.toString());
+      if (val === null) {
+        ewCounterDiv.textContent = '';
+        ewCounterDiv.classList.add('blank');
+      } else {
+        ewCounterDiv.textContent = val.toString();
+        ewCounterDiv.classList.remove('blank');
+      }
     }
     function showNSCount(val) {
-      nsCounterDiv.textContent = (val === null ? '' : val.toString());
+      if (val === null) {
+        nsCounterDiv.textContent = '';
+        nsCounterDiv.classList.add('blank');
+      } else {
+        nsCounterDiv.textContent = val.toString();
+        nsCounterDiv.classList.remove('blank');
+      }
     }
 
     ///////////////////////////////////////////////////
-    // 2. Chức năng Auto Mode (chạy tuần tự)
+    // 2. Chức năng Auto Mode (chu trình 4 pha)
     ///////////////////////////////////////////////////
     function startAutoMode() {
       clearAllTimers();
-      // Mỗi pha sẽ cập nhật đèn & đếm vào đúng bộ đếm
 
+      // Pha 1: EW xanh 6s, NS đỏ
       function phaseEWGreen() {
-        setEW(0,0,1);       // EW = Xanh
-        setNS(1,0,0);       // NS = Đỏ
+        setEW(0,0,1);    // EW xanh
+        setNS(1,0,0);    // NS đỏ
         let t = 6;
         showEWCount(t);
         showNSCount(null);
@@ -243,9 +337,10 @@
         }, SEC);
       }
 
+      // Pha 2: EW vàng 3s, NS đỏ
       function phaseEWYellow() {
-        setEW(0,1,0);       // EW = Vàng
-        setNS(1,0,0);       // NS = Đỏ
+        setEW(0,1,0);    // EW vàng
+        setNS(1,0,0);    // NS đỏ
         let t = 3;
         showEWCount(t);
         showNSCount(null);
@@ -259,9 +354,10 @@
         }, SEC);
       }
 
+      // Pha 3: NS xanh 6s, EW đỏ
       function phaseNSGreen() {
-        setEW(1,0,0);       // EW = Đỏ
-        setNS(0,0,1);       // NS = Xanh
+        setEW(1,0,0);    // EW đỏ
+        setNS(0,0,1);    // NS xanh
         let t = 6;
         showEWCount(null);
         showNSCount(t);
@@ -275,9 +371,10 @@
         }, SEC);
       }
 
+      // Pha 4: NS vàng 3s, EW đỏ
       function phaseNSYellow() {
-        setEW(1,0,0);       // EW = Đỏ
-        setNS(0,1,0);       // NS = Vàng
+        setEW(1,0,0);    // EW đỏ
+        setNS(0,1,0);    // NS vàng
         let t = 3;
         showEWCount(null);
         showNSCount(t);
@@ -314,7 +411,7 @@
       showEWCount(null);
       showNSCount(null);
 
-      // Nhấp nháy đỏ khi idle
+      // 3.1: Nhấp nháy đỏ (idle)
       let redOn = false;
       function blinkRed() {
         redOn = !redOn;
@@ -328,10 +425,10 @@
       }
       manualBlinkInt = setInterval(blinkRed, SEC / 2);
 
-      // BTN1 (NS) – luôn override
+      // 3.2: BTN1 (NS) – luôn override
       btn1.onclick = () => {
         if (manualState === 'ns-green-static') {
-          // Lần hai: sang 'ns-counting-green'
+          // Nhấn lần hai: bắt đầu đếm NS
           clearAllTimers();
           manualState = 'ns-counting-green';
           let t = 6;
@@ -344,7 +441,7 @@
             showNSCount(t >= 0 ? t : '');
             if (t < 0) {
               clearInterval(manualPhaseTimer);
-              // Sang NS vàng
+              // Chuyển NS sang vàng
               manualState = 'ns-counting-yellow';
               let t2 = 3;
               setEW(1,0,0);
@@ -366,7 +463,7 @@
             }
           }, SEC);
         } else {
-          // Override sang 'ns-green-static'
+          // Override ngay sang NS xanh tĩnh
           clearAllTimers();
           manualState = 'ns-green-static';
           setEW(1,0,0);   // EW đỏ
@@ -376,10 +473,10 @@
         }
       };
 
-      // BTN2 (EW) – luôn override
+      // 3.3: BTN2 (EW) – luôn override
       btn2.onclick = () => {
         if (manualState === 'ew-green-static') {
-          // Lần hai: sang 'ew-counting-green'
+          // Nhấn lần hai: bắt đầu đếm EW
           clearAllTimers();
           manualState = 'ew-counting-green';
           let t = 6;
@@ -392,7 +489,7 @@
             showEWCount(t >= 0 ? t : '');
             if (t < 0) {
               clearInterval(manualPhaseTimer);
-              // Sang EW vàng
+              // Chuyển EW sang vàng
               manualState = 'ew-counting-yellow';
               let t2 = 3;
               setNS(1,0,0);
@@ -414,7 +511,7 @@
             }
           }, SEC);
         } else {
-          // Override sang 'ew-green-static'
+          // Override ngay sang EW xanh tĩnh
           clearAllTimers();
           manualState = 'ew-green-static';
           setNS(1,0,0);  // NS đỏ
@@ -459,4 +556,5 @@
   </script>
 </body>
 </html>
+
 
