@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Traffic Light Simulator (Decorated Frames)</title>
+  <style>
+    /* ======================
+       CSS cơ bản
+    ======================= */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      margin-bottom: 20px;
+      color: #555;
+    }
+
+    /* Nút điều khiển */
+    .controls {
+      margin-bottom: 20px;
+    }
+    .controls button {
+      padding: 8px 16px;
+      font-size: 16px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      transition: background 0.2s;
+    }
+    .controls button:hover {
+      background-color: #0056b3;
+    }
+    .controls button.active {
+      background-color: #0056b3;
+    }
+    .controls button.manual-btn {
+      background-color: #28a745;
+    }
+    .controls button.manual-btn:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+
+    /* Bố cục đèn với khung */
+    .container {
+      display: flex;
+      gap: 60px;
+      margin-bottom: 20px;
+    }
+    .traffic-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .traffic-label {
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    .lights {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .light {
+      width: 50px;
+      height: 50px;
+      background-color: #333; /* tắt = xám đậm */
+      border-radius: 50%;
+      border: 2px solid #555;
+    }
+    .light.red.active    { background-color: red;    }
+    .light.yellow.active { background-color: yellow; }
+    .light.green.active  { background-color: green;  }
+
+    /* Bố cục 2 bộ đếm với khung */
+    .counters {
+      display: flex;
+      gap: 40px;
+      margin-top: 10px;
+    }
+    .counter-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      min-width: 100px;
+    }
+    .counter-label {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    .counter {
+      font-size: 48px;
+      font-weight: bold;
+      height: 60px;    /* giữ chỗ khi blank */
+      line-height: 60px;
+      text-align: center;
+      color: #333;
+      min-width: 60px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Traffic Light Simulator</h1>
+  <p class="subtitle">Manual Mode: Nhấn BTN1/BTN2 luôn nhảy ngay</p>
+
+  <!-- 1. Nút chọn chế độ và nút bấm Manual -->
+  <div class="controls">
+    <button id="btn-auto">Auto Mode</button>
+    <button id="btn-manual">Manual Mode</button>
+    <button id="btn1" class="manual-btn" disabled>BTN1 (NS)</button>
+    <button id="btn2" class="manual-btn" disabled>BTN2 (EW)</button>
+  </div>
+
+  <!-- 2. Hai nhóm đèn EW & NS với khung -->
+  <div class="container">
+    <!-- Nhánh EW -->
+    <div class="traffic-group">
+      <div class="traffic-label">EW</div>
+      <div class="lights">
+        <div id="ew-red" class="light red"></div>
+        <div id="ew-yellow" class="light yellow"></div>
+        <div id="ew-green" class="light green"></div>
+      </div>
+    </div>
+    <!-- Nhánh NS -->
+    <div class="traffic-group">
+      <div class="traffic-label">NS</div>
+      <div class="lights">
+        <div id="ns-red" class="light red"></div>
+        <div id="ns-yellow" class="light yellow"></div>
+        <div id="ns-green" class="light green"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Hai bộ đếm riêng với khung -->
+  <div class="counters">
+    <div class="counter-box">
+      <div class="counter-label">EW Count</div>
+      <div id="ew-counter" class="counter"></div>
+    </div>
+    <div class="counter-box">
+      <div class="counter-label">NS Count</div>
+      <div id="ns-counter" class="counter"></div>
+    </div>
+  </div>
+
+
+  <script>
+    ///////////////////////////////////////////////////
+    // 1. Khai báo biến toàn cục và helper functions
+    ///////////////////////////////////////////////////
+    const btnAuto    = document.getElementById('btn-auto');
+    const btnManual  = document.getElementById('btn-manual');
+    const btn1       = document.getElementById('btn1');   // BTN1 điều khiển NS
+    const btn2       = document.getElementById('btn2');   // BTN2 điều khiển EW
+    const ewRed      = document.getElementById('ew-red');
+    const ewYellow   = document.getElementById('ew-yellow');
+    const ewGreen    = document.getElementById('ew-green');
+    const nsRed      = document.getElementById('ns-red');
+    const nsYellow   = document.getElementById('ns-yellow');
+    const nsGreen    = document.getElementById('ns-green');
+    const ewCounterDiv = document.getElementById('ew-counter');
+    const nsCounterDiv = document.getElementById('ns-counter');
+
+    // Trạng thái hệ thống:
+    let mode = 'auto'; // 'auto' hoặc 'manual'
+
+    // References cho các timeout / interval để dễ clear
+    let autoTimer       = null;
+    let manualBlinkInt  = null;
+    let manualPhaseTimer= null;
+
+    const SEC = 1000; // 1 giây (ms)
+
+    // Bật/tắt đèn
+    function setEW(r, y, g) {
+      ewRed.classList.toggle('active',    r);
+      ewYellow.classList.toggle('active', y);
+      ewGreen.classList.toggle('active',  g);
+    }
+    function setNS(r, y, g) {
+      nsRed.classList.toggle('active',    r);
+      nsYellow.classList.toggle('active', y);
+      nsGreen.classList.toggle('active',  g);
+    }
+
+    // Hiển thị đếm
+    function showEWCount(val) {
+      ewCounterDiv.textContent = (val === null ? '' : val.toString());
+    }
+    function showNSCount(val) {
+      nsCounterDiv.textContent = (val === null ? '' : val.toString());
+    }
+
+    ///////////////////////////////////////////////////
+    // 2. Chức năng Auto Mode (chạy tuần tự)
+    ///////////////////////////////////////////////////
+    function startAutoMode() {
+      clearAllTimers();
+      // Mỗi pha sẽ cập nhật đèn & đếm vào đúng bộ đếm
+
+      function phaseEWGreen() {
+        setEW(0,0,1);       // EW = Xanh
+        setNS(1,0,0);       // NS = Đỏ
+        let t = 6;
+        showEWCount(t);
+        showNSCount(null);
+        autoTimer = setInterval(() => {
+          t--;
+          showEWCount(t);
+          if (t <= 0) {
+            clearInterval(autoTimer);
+            phaseEWYellow();
+          }
+        }, SEC);
+      }
+
+      function phaseEWYellow() {
+        setEW(0,1,0);       // EW = Vàng
+        setNS(1,0,0);       // NS = Đỏ
+        let t = 3;
+        showEWCount(t);
+        showNSCount(null);
+        autoTimer = setInterval(() => {
+          t--;
+          showEWCount(t);
+          if (t <= 0) {
+            clearInterval(autoTimer);
+            phaseNSGreen();
+          }
+        }, SEC);
+      }
+
+      function phaseNSGreen() {
+        setEW(1,0,0);       // EW = Đỏ
+        setNS(0,0,1);       // NS = Xanh
+        let t = 6;
+        showEWCount(null);
+        showNSCount(t);
+        autoTimer = setInterval(() => {
+          t--;
+          showNSCount(t);
+          if (t <= 0) {
+            clearInterval(autoTimer);
+            phaseNSYellow();
+          }
+        }, SEC);
+      }
+
+      function phaseNSYellow() {
+        setEW(1,0,0);       // EW = Đỏ
+        setNS(0,1,0);       // NS = Vàng
+        let t = 3;
+        showEWCount(null);
+        showNSCount(t);
+        autoTimer = setInterval(() => {
+          t--;
+          showNSCount(t);
+          if (t <= 0) {
+            clearInterval(autoTimer);
+            phaseEWGreen();
+          }
+        }, SEC);
+      }
+
+      // Bắt đầu chu trình Auto
+      phaseEWGreen();
+    }
+
+    ///////////////////////////////////////////////////
+    // 3. Chức năng Manual Mode (Immediate switch)
+    ///////////////////////////////////////////////////
+    let manualState = 'idle';
+    // Các giá trị có thể: 
+    //   'idle'                
+    //   'ns-green-static'     
+    //   'ns-counting-green'   
+    //   'ns-counting-yellow'  
+    //   'ew-green-static'     
+    //   'ew-counting-green'   
+    //   'ew-counting-yellow'  
+
+    function startManualMode() {
+      clearAllTimers();
+      manualState = 'idle';
+      showEWCount(null);
+      showNSCount(null);
+
+      // Nhấp nháy đỏ khi idle
+      let redOn = false;
+      function blinkRed() {
+        redOn = !redOn;
+        if (redOn) {
+          setEW(1,0,0);
+          setNS(1,0,0);
+        } else {
+          setEW(0,0,0);
+          setNS(0,0,0);
+        }
+      }
+      manualBlinkInt = setInterval(blinkRed, SEC / 2);
+
+      // BTN1 (NS) – luôn override
+      btn1.onclick = () => {
+        if (manualState === 'ns-green-static') {
+          // Lần hai: sang 'ns-counting-green'
+          clearAllTimers();
+          manualState = 'ns-counting-green';
+          let t = 6;
+          setEW(1,0,0);    // EW đỏ
+          setNS(0,0,1);    // NS xanh
+          showEWCount(null);
+          showNSCount(t);
+          manualPhaseTimer = setInterval(() => {
+            t--;
+            showNSCount(t >= 0 ? t : '');
+            if (t < 0) {
+              clearInterval(manualPhaseTimer);
+              // Sang NS vàng
+              manualState = 'ns-counting-yellow';
+              let t2 = 3;
+              setEW(1,0,0);
+              setNS(0,1,0);
+              showNSCount(t2);
+              manualPhaseTimer = setInterval(() => {
+                t2--;
+                showNSCount(t2 >= 0 ? t2 : '');
+                if (t2 < 0) {
+                  clearInterval(manualPhaseTimer);
+                  // Về Idle
+                  manualState = 'idle';
+                  showNSCount(null);
+                  showEWCount(null);
+                  blinkRed(); 
+                  manualBlinkInt = setInterval(blinkRed, SEC / 2);
+                }
+              }, SEC);
+            }
+          }, SEC);
+        } else {
+          // Override sang 'ns-green-static'
+          clearAllTimers();
+          manualState = 'ns-green-static';
+          setEW(1,0,0);   // EW đỏ
+          setNS(0,0,1);   // NS xanh tĩnh
+          showEWCount(null);
+          showNSCount(null);
+        }
+      };
+
+      // BTN2 (EW) – luôn override
+      btn2.onclick = () => {
+        if (manualState === 'ew-green-static') {
+          // Lần hai: sang 'ew-counting-green'
+          clearAllTimers();
+          manualState = 'ew-counting-green';
+          let t = 6;
+          setNS(1,0,0);    // NS đỏ
+          setEW(0,0,1);    // EW xanh
+          showNSCount(null);
+          showEWCount(t);
+          manualPhaseTimer = setInterval(() => {
+            t--;
+            showEWCount(t >= 0 ? t : '');
+            if (t < 0) {
+              clearInterval(manualPhaseTimer);
+              // Sang EW vàng
+              manualState = 'ew-counting-yellow';
+              let t2 = 3;
+              setNS(1,0,0);
+              setEW(0,1,0);
+              showEWCount(t2);
+              manualPhaseTimer = setInterval(() => {
+                t2--;
+                showEWCount(t2 >= 0 ? t2 : '');
+                if (t2 < 0) {
+                  clearInterval(manualPhaseTimer);
+                  // Về Idle
+                  manualState = 'idle';
+                  showEWCount(null);
+                  showNSCount(null);
+                  blinkRed();
+                  manualBlinkInt = setInterval(blinkRed, SEC / 2);
+                }
+              }, SEC);
+            }
+          }, SEC);
+        } else {
+          // Override sang 'ew-green-static'
+          clearAllTimers();
+          manualState = 'ew-green-static';
+          setNS(1,0,0);  // NS đỏ
+          setEW(0,0,1);  // EW xanh tĩnh
+          showEWCount(null);
+          showNSCount(null);
+        }
+      };
+    }
+
+    ///////////////////////////////////////////////////
+    // 4. Chuyển đổi Auto ↔ Manual
+    ///////////////////////////////////////////////////
+    function clearAllTimers() {
+      if (autoTimer)          { clearInterval(autoTimer);          autoTimer = null; }
+      if (manualBlinkInt)     { clearInterval(manualBlinkInt);     manualBlinkInt = null; }
+      if (manualPhaseTimer)   { clearInterval(manualPhaseTimer);   manualPhaseTimer = null; }
+    }
+
+    btnAuto.addEventListener('click', () => {
+      mode = 'auto';
+      btnAuto.classList.add('active');
+      btnManual.classList.remove('active');
+      btn1.disabled = true;
+      btn2.disabled = true;
+      startAutoMode();
+    });
+
+    btnManual.addEventListener('click', () => {
+      mode = 'manual';
+      btnManual.classList.add('active');
+      btnAuto.classList.remove('active');
+      btn1.disabled = false;
+      btn2.disabled = false;
+      startManualMode();
+    });
+
+    // Khi trang load xong, mặc định chạy Auto
+    document.addEventListener('DOMContentLoaded', () => {
+      btnAuto.click();
+    });
+  </script>
+</body>
+</html>
+
