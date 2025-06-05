@@ -325,11 +325,14 @@
         setEW(0,0,1);    // EW xanh
         setNS(1,0,0);    // NS đỏ
         let t = 6;
+	let k = 9
         showEWCount(t);
-        showNSCount(null);
+        showNSCount(k);
         autoTimer = setInterval(() => {
           t--;
+	  k--;
           showEWCount(t);
+          showNSCount(k);
           if (t <= 0) {
             clearInterval(autoTimer);
             phaseEWYellow();
@@ -343,10 +346,11 @@
         setNS(1,0,0);    // NS đỏ
         let t = 3;
         showEWCount(t);
-        showNSCount(null);
+        showNSCount(t);
         autoTimer = setInterval(() => {
           t--;
           showEWCount(t);
+ 	showNSCount(t)
           if (t <= 0) {
             clearInterval(autoTimer);
             phaseNSGreen();
@@ -359,11 +363,15 @@
         setEW(1,0,0);    // EW đỏ
         setNS(0,0,1);    // NS xanh
         let t = 6;
-        showEWCount(null);
+let k = 9;
+        showEWCount(k);
         showNSCount(t);
         autoTimer = setInterval(() => {
           t--;
+k--;
           showNSCount(t);
+showEWCount(k);
+
           if (t <= 0) {
             clearInterval(autoTimer);
             phaseNSYellow();
@@ -376,11 +384,12 @@
         setEW(1,0,0);    // EW đỏ
         setNS(0,1,0);    // NS vàng
         let t = 3;
-        showEWCount(null);
+        showEWCount(t);
         showNSCount(t);
         autoTimer = setInterval(() => {
           t--;
           showNSCount(t);
+showEWCount(t);
           if (t <= 0) {
             clearInterval(autoTimer);
             phaseEWGreen();
@@ -556,5 +565,4 @@
   </script>
 </body>
 </html>
-
 
